@@ -1,5 +1,6 @@
 import requests
 import sys
+import os
 from help import help
 from os import makedirs
 from os.path import isdir, isfile
@@ -13,6 +14,10 @@ linkNames = []
 finalLinks = []
 user = ''
 passw = ''
+
+
+def clear():
+    os.system('cls')
 
 
 def loginfo_enc(user, passw):
@@ -52,7 +57,10 @@ def link_scrapper(url, session):
     if source and source.status_code == 200:
         soup = BeautifulSoup(source.content, 'lxml')
         title = soup.find("span", class_="title")
-        name = title.text
+        if not title:
+            name = input("Enter the name of the manga: ")
+        else:
+            name = title.text
         table = soup.find("div", class_="table-outer")
         tbody = table.find('tbody')
         links = tbody.find_all('a')
@@ -88,6 +96,7 @@ def selection(sel):
     for i in selNumb:
         finalLinks.append(linkNames[i])
 
+    clear()
     return finalLinks
 
 
@@ -119,9 +128,16 @@ def download_folder(path):
 def downloader():
     path_folder = get_path().strip() + name + "\\"
     download_folder(path_folder)
+    nFiles = len(finalLinks)
     for link in finalLinks:
         path = path_folder + link
         download(dicLinks[link], path, link)
+        clear()
+        nFiles -= 1
+        if nFiles == 1:
+            print(f"{nFiles} file left")
+        elif nFiles > 1:
+            print(f"{nFiles} files left")
     return
 
 
@@ -136,11 +152,11 @@ def download(url, filename, name):
         else:
             downloaded = 0
             total = int(total)
-            for data in response.iter_content(chunk_size=max(int(total/1000), 1024*1024)):
+            for data in response.iter_content(chunk_size=max(int(total / 1000), 1024 * 1024)):
                 downloaded += len(data)
                 f.write(data)
-                done = int(50*downloaded/total)
-                sys.stdout.write('\r|{}{}| {}%'.format('█' * done, '.' * (50-done), done*2))
+                done = int(50 * downloaded / total)
+                sys.stdout.write('\r|{}{}| {}%'.format('█' * done, '.' * (50 - done), done * 2))
                 sys.stdout.flush()
     sys.stdout.write('\n')
 
@@ -193,22 +209,3 @@ while True:
 
     else:
         print("Not a valid command")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
